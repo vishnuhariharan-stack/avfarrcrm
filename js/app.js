@@ -374,16 +374,7 @@ const views = {
                                 </td>
                                 <td>${l.incorporation_date || 'N/A'}</td>
                                 <td><div class="score-pill" style="background: ${components.scoreColor(l.score)}; color: white;">${l.score || 0}</div></td>
-                                <td>
-                                    <select class="mini-select" onchange="app.updateLeadStatus('${l.id}', this.value)">
-                                        <option value="New" ${l.status === 'New' ? 'selected' : ''}>New</option>
-                                        <option value="Contacted" ${l.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
-                                        <option value="Qualified" ${l.status === 'Qualified' ? 'selected' : ''}>Qualified</option>
-                                        <option value="Assigned" ${l.status === 'Assigned' ? 'selected' : ''}>Assigned</option>
-                                        <option value="Closed" ${l.status === 'Closed' ? 'selected' : ''}>Closed</option>
-                                    </select>
-                                </td>
-                                <td>${l.members ? l.members.firm_name : '<em>-</em>'}</td>
+                                <td>${l.members ? `<span>${l.members.firm_name}</span>` : `<button class="mini-btn-outline" onclick="app.showAssignModal('${l.id}')">Assign</button>`}</td>
                                 <td><button class="mini-btn" onclick="app.viewLead('${l.id}')">View</button></td>
                             </tr>
                         `).join('')}
@@ -577,12 +568,10 @@ const views = {
                         <p><strong>Status:</strong> ${components.pill(l.status, l.status === 'New' ? 'blue' : 'green')}</p>
                         <p><strong>Score:</strong> <div class="score-pill">${l.score}</div></p>
                         <p><strong>Assigned Member:</strong> 
-                            <select onchange="app.assignLead('${l.id}', this.value)">
-                                <option value="">-- Unassigned --</option>
-                                ${state.members.map(m => `
-                                    <option value="${m.id}" ${l.assigned_member_id === m.id ? 'selected' : ''}>${m.firm_name}</option>
-                                `).join('')}
-                            </select>
+                            ${l.members ? `<strong>${l.members.firm_name}</strong>` : 'Unassigned'}
+                            <button class="mini-btn-outline" style="margin-left:10px;" onclick="app.showAssignModal('${l.id}')">
+                                ${l.members ? 'Change' : 'Assign Firm'}
+                            </button>
                         </p>
                     </div>
                     <div class="dash-chart-card">
@@ -835,6 +824,13 @@ window.app = {
         } else {
             // Log activity
             await app.logActivity(leadId, memberId, 'Assignment', `Lead assigned to ${memberId ? 'member' : 'nobody'}`);
+
+            // Mock notification trigger
+            if (memberId) {
+                console.log('Triggering Edge Function: notify-assignment for member', memberId);
+                // In production: await supabase.functions.invoke('notify-assignment', { body: { leadId, memberId } });
+            }
+
             await fetchCRMData();
         }
         state.loading = false;
@@ -843,6 +839,77 @@ window.app = {
     setLeadMemberFilter: (mid) => {
         state.leadMemberFilter = mid;
         render();
+    },
+    showAssignModal: (leadId) => {
+        const lead = state.leads.find(l => l.id === leadId);
+        if (!lead) return;
+
+        // Smart Recommendations Scoring
+        const recommendations = state.members
+            .filter(m => !m.is_archived)
+            .map(m => {
+                let score = 0;
+                let reasons = [];
+
+                // 1. Postcode Match (+40)
+                const leadPostcode = (lead.registered_address || '').split(',').pop().trim().split(' ')[0]; // Basic postcode extraction
+                const hasPostcode = (m.postcodes_served || []).some(p => leadPostcode.startsWith(p));
+                if (hasPostcode) { score += 40; reasons.push('Territory Match'); }
+
+                // 2. SIC / Specialism Match (+30)
+                const hasSpec = (m.specialisms || []).some(s =>
+                    (lead.sic_codes || []).some(sic => sic.toLowerCase().includes(s.toLowerCase()))
+                );
+                if (hasSpec) { score += 30; reasons.push('Specialism Match'); }
+
+                // 3. Capacity (+20 for Green, +10 for Amber)
+                if (m.capacity_status === 'Available') { score += 20; reasons.push('High Capacity'); }
+                else if (m.capacity_status === 'Busy') { score += 10; reasons.push('Moderate Capacity'); }
+
+                // Conflict Detection: check if any other active lead in this postcode is assigned to another member
+                const conflict = state.leads.some(l =>
+                    l.id !== leadId &&
+                    l.assigned_member_id &&
+                    l.assigned_member_id !== m.id &&
+                    (l.registered_address || '').includes(leadPostcode)
+                );
+
+                return { member: m, score, reasons, conflict };
+            })
+            .sort((a, b) => b.score - a.score);
+
+        const body = `
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 13px; color: var(--text-secondary);">Assigning <strong>${lead.company_name}</strong> to a network partner.</p>
+            </div>
+            <div class="recommendation-list" style="max-height: 400px; overflow-y: auto;">
+                ${recommendations.map(r => `
+                    <div class="rec-item" style="padding: 15px; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; background: ${r.score > 0 ? '#f8fafc' : 'white'};">
+                        <div style="flex: 1;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <strong>${r.member.firm_name}</strong>
+                                ${r.score > 50 ? '<span class="pill pill-green" style="font-size:10px; padding:2px 6px;">Top Match</span>' : ''}
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                                ${r.reasons.join(' • ')} 
+                                ${r.conflict ? '<span style="color: #ea580c; font-weight: 600; display: block; margin-top:4px;">⚠️ Territory Conflict: Postcode busy</span>' : ''}
+                            </div>
+                        </div>
+                        <button class="mini-btn-primary" onclick="app.assignLead('${leadId}', '${r.member.id}'); app.closeModal();">Assign</button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        document.getElementById('modal-title').innerText = 'Intelligent Match-making';
+        document.getElementById('modal-body').innerHTML = body;
+        document.getElementById('modal-container').style.display = 'flex';
+        // Hide the default submit button as we have direct 'Assign' buttons
+        document.getElementById('modal-submit').style.display = 'none';
+    },
+    closeModal: () => {
+        document.getElementById('modal-container').style.display = 'none';
+        document.getElementById('modal-submit').style.display = 'block'; // Reset
     },
     openLeadSidePanel: async (id) => {
         state.selectedLead = state.leads.find(l => l.id === id);

@@ -302,6 +302,37 @@ body {
     filter: brightness(1.1);
 }
 
+.mini-btn-outline {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mini-btn-outline:hover {
+    background: #f8fafc;
+    border-color: var(--text-muted);
+}
+
+.mini-btn-primary {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mini-btn-primary:hover {
+    filter: brightness(1.1);
+}
+
 /* Member Detail View */
 .detail-layout {
     display: grid;
