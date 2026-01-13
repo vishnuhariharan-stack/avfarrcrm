@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+.env
+*.log
+.vscode/
+.idea/
+.gemini/
+brain/
+implementation_plan.md
+task.md
+walkthrough.md
+schema.sql

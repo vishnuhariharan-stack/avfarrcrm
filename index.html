@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVFarr CRM | Network Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <div id="app" class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">A</div>
+                    <span class="logo-text">AV Farr CRM</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i class="icon-dash">📊</i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-view="firms">
+                    <i class="icon-members">👥</i>
+                    <span>Members</span>
+                </a>
+                <a href="#" class="nav-item" data-view="pipelines">
+                    <i class="icon-pipe">📋</i>
+                    <span>Pipelines</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="footer-item">
+                    <i>⚙️</i>
+                    <span>Settings</span>
+                </div>
+                <div class="footer-item">
+                    <i>🎧</i>
+                    <span>Support</span>
+                </div>
+                <div class="footer-item text-danger">
+                    <i>↩️</i>
+                    <span>Sign Out</span>
+                </div>
+
+                <div class="user-block">
+                    <div class="avatar-small">AM</div>
+                    <div class="user-details">
+                        <span class="u-name">Alex Morgan</span>
+                        <span class="u-role">Sales Manager</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-area">
+            <header class="top-nav">
+                <div class="search-field">
+                    <input type="text" placeholder="Global search...">
+                </div>
+                <div class="top-actions">
+                    <div class="notif-btn">🔔</div>
+                    <span>Help & Support</span>
+                </div>
+            </header>
+
+            <div id="view-container" class="view-viewport">
+                <!-- Dynamic Content Injected Here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="modal-overlay">
+        <div class="modal-card animated">
+            <h2 id="modal-title">Add Record</h2>
+            <div id="modal-body"></div>
+            <div class="modal-actions">
+                <button class="mini-btn" onclick="app.closeModal()">Cancel</button>
+                <button id="modal-submit" class="btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
