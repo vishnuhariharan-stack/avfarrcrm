@@ -12,6 +12,7 @@ const state = {
     loading: true,
     activePipeline: PIPELINES.STAFFING,
     selectedMember: null,
+    searchQuery: '',
     user: {
         name: 'Alex Morgan',
         role: 'Sales Manager'
@@ -138,7 +139,10 @@ const views = {
                     </tr>
                 </thead>
                 <tbody id="member-table-body">
-                    ${state.firms.map(f => `
+                    ${state.firms.filter(f =>
+        f.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+        (f.contact_name && f.contact_name.toLowerCase().includes(state.searchQuery.toLowerCase()))
+    ).map(f => `
                         <tr>
                             <td><div class="name-cell">${components.avatar(f.avatar_text || (f.contact_name ? f.contact_name[0] : '?'))} <span>${f.contact_name || 'No Contact'}</span></div></td>
                             <td>${f.name}</td>
@@ -178,11 +182,16 @@ const views = {
 
             <div class="kanban-board animated">
                 ${guildStages.map(stage => {
-            const stageFirms = state.firms.filter(f => f.stage === stage && f.pipeline === state.activePipeline);
+            const stageFirms = state.firms.filter(f =>
+                f.stage === stage &&
+                f.pipeline === state.activePipeline &&
+                (f.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                    (f.contact_name && f.contact_name.toLowerCase().includes(state.searchQuery.toLowerCase())))
+            );
             const stageTotal = stageFirms.reduce((acc, f) => acc + (parseFloat(f.value) || 0), 0);
 
             return `
-                        <div class="kanban-col">
+                        <div class="kanban-col" ondragover="app.allowDrop(event)" ondragleave="app.handleDragLeave(event)" ondrop="app.handleDrop(event, '${stage}')">
                             <div class="col-head">
                                 <h3>${stage}</h3>
                                 <div class="col-count-bubble">${stageFirms.length}</div>
@@ -190,7 +199,7 @@ const views = {
                             <div class="col-value-summary">${formatCurrency(stageTotal)}</div>
                             <div class="kanban-list">
                                 ${stageFirms.map(f => `
-                                    <div class="kanban-card" onclick="app.viewMember('${f.id}')">
+                                    <div class="kanban-card" draggable="true" ondragstart="app.handleDragStart(event, '${f.id}')" onclick="app.viewMember('${f.id}')">
                                         <div class="card-title-row">
                                             <strong>${f.name}</strong>
                                         </div>
@@ -199,7 +208,12 @@ const views = {
                                         <div class="card-tags">${(f.tags || []).map(t => components.tag(t)).join('')}</div>
                                     </div>
                                 `).join('')}
-                                ${stageFirms.length === 0 ? '<div style="border: 2px dashed #cbd5e1; padding: 20px; border-radius: 10px; text-align: center; color: #94a3b8; font-size: 12px;">Drop here</div>' : ''}
+                                ${stageFirms.length === 0 ? `
+                                    <div class="empty-kanban-slot">
+                                        <div class="empty-icon">📂</div>
+                                        <p>No members in this stage</p>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -335,20 +349,8 @@ window.app = {
         await fetchFirms();
     },
     searchFirms: (val) => {
-        const query = val.toLowerCase();
-        const body = document.getElementById('member-table-body');
-        if (!body) return;
-        const filtered = state.firms.filter(f => f.name.toLowerCase().includes(query) || (f.contact_name && f.contact_name.toLowerCase().includes(query)));
-        body.innerHTML = filtered.map(f => `
-            <tr>
-                <td><div class="name-cell">${components.avatar(f.avatar_text || (f.contact_name ? f.contact_name[0] : '?'))} <span>${f.contact_name || 'No Contact'}</span></div></td>
-                <td>${f.name}</td>
-                <td>${components.pill(f.pipeline || 'General', (f.pipeline || '').includes('Deals') ? 'purple' : 'blue')}</td>
-                <td>${components.pill(f.stage || 'Interest', 'green')}</td>
-                <td><strong>${formatCurrency(f.value)}</strong></td>
-                <td><button class="mini-btn" onclick="app.viewMember('${f.id}')">View</button></td>
-            </tr>
-        `).join('');
+        state.searchQuery = val;
+        render();
     },
     handleImport: async (event) => {
         const file = event.target.files[0];
@@ -378,6 +380,45 @@ window.app = {
             await fetchFirms();
         };
         reader.readAsArrayBuffer(file);
+    },
+    allowDrop: (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('drag-over');
+    },
+    handleDragLeave: (e) => {
+        e.currentTarget.classList.remove('drag-over');
+    },
+    handleDragStart: (e, id) => {
+        e.dataTransfer.setData('memberId', id);
+        e.target.classList.add('dragging');
+    },
+    handleDrop: async (e, newStage) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const id = e.dataTransfer.getData('memberId');
+        if (id) {
+            await app.updateMemberStage(id, newStage);
+        }
+    },
+    updateMemberStage: async (id, newStage) => {
+        const firm = state.firms.find(f => f.id === id);
+        if (!firm || firm.stage === newStage) return;
+
+        // Optimistic Update
+        const oldStage = firm.stage;
+        firm.stage = newStage;
+        render();
+
+        const { error } = await supabase
+            .from('firms')
+            .update({ stage: newStage })
+            .eq('id', id);
+
+        if (error) {
+            alert('Sync Error: ' + error.message);
+            firm.stage = oldStage;
+            render();
+        }
     }
 };
 

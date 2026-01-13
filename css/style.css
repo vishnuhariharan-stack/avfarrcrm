@@ -587,7 +587,57 @@ body {
     outline: none;
 }
 
-/* Utils */
+.empty-kanban-slot {
+    border: 2px dashed var(--border-light);
+    padding: 30px 20px;
+    border-radius: 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.empty-icon {
+    font-size: 24px;
+    opacity: 0.5;
+}
+
+/* Drag & Drop Visuals */
+.kanban-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    border: 2px dashed var(--brand-primary);
+}
+
+.kanban-col.drag-over {
+    background: var(--brand-mint);
+    border: 2px dashed var(--brand-primary);
+}
+
+/* Animations & Polishing */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-light);
+    border-top: 4px solid var(--brand-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .animated {
     animation: fadeInUp 0.5s ease-out forwards;
 }
