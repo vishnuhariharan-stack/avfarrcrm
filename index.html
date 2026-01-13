@@ -31,13 +31,17 @@
                     <i class="icon-dash">📊</i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" data-view="firms">
+                <a href="#" class="nav-item" data-view="members">
                     <i class="icon-members">👥</i>
                     <span>Members</span>
                 </a>
+                <a href="#" class="nav-item" data-view="leads">
+                    <i class="icon-leads">🎯</i>
+                    <span>Leads</span>
+                </a>
                 <a href="#" class="nav-item" data-view="pipelines">
                     <i class="icon-pipe">📋</i>
-                    <span>Pipelines</span>
+                    <span>Pipeline</span>
                 </a>
             </nav>
 
@@ -81,6 +85,17 @@
                 <!-- Dynamic Content Injected Here -->
             </div>
         </main>
+    </div>
+
+    <!-- Side Over Panel -->
+    <div id="side-panel-container" class="side-panel-overlay" onclick="app.closeSidePanel(event)">
+        <div class="side-panel-content" onclick="event.stopPropagation()">
+            <div class="side-panel-header">
+                <h2 id="side-panel-title">Details</h2>
+                <button class="close-btn" onclick="app.closeSidePanel()">×</button>
+            </div>
+            <div id="side-panel-body" class="side-panel-body"></div>
+        </div>
     </div>
 
     <!-- Modals -->

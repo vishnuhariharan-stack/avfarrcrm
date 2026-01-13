@@ -511,9 +511,9 @@ body {
     transition: all 0.2s ease;
 }
 
-.kanban-card:hover {
-    transform: scale(1.02);
-    box-shadow: var(--shadow-md);
+.kanban-col.drag-over {
+    background: #e2e8f0;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .members-table {
@@ -604,6 +604,212 @@ body {
 .empty-icon {
     font-size: 24px;
     opacity: 0.5;
+}
+
+.score-pill {
+    background: var(--brand-dark);
+    color: var(--brand-accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* Capacity Badges */
+.capacity-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.capacity-badge.green {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.capacity-badge.amber {
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fef08a;
+}
+
+.capacity-badge.red {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Side Panel */
+.side-panel-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+    overflow-x: hidden;
+    transition: 0.3s;
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.side-panel-overlay.open {
+    width: 100%;
+}
+
+.side-panel-content {
+    width: 480px;
+    height: 100%;
+    background: white;
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel-header {
+    padding: 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.side-panel-body {
+    padding: 25px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+    margin-top: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--brand-accent);
+    border: 2px solid white;
+}
+
+.timeline-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.timeline-notes {
+    font-size: 13px;
+    margin-top: 5px;
+    color: var(--text-dark);
+}
+
+/* Kanban Extras */
+.card-days {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.funnel-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.funnel-step {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.funnel-bar-wrap {
+    flex: 1;
+    height: 12px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.funnel-bar {
+    height: 100%;
+    transition: 0.5s;
+}
+
+/* Stats Bar */
+.member-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-mini-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.stat-mini-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-mini-card h4 {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.stat-mini-card .val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--brand-dark);
+}
+
+.mini-select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    background: white;
+}
+
+.mini-btn.active {
+    background: var(--brand-dark);
+    color: white;
+    border-color: var(--brand-dark);
 }
 
 /* Drag & Drop Visuals */
